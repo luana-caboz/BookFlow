@@ -31,7 +31,7 @@ public class UsuarioService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"O login do usuário é obrigatório.");      
         }
         if (usuario.getSenha() == null|| usuario.getSenha().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"O nome de usuário é obrigatório.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"A senha é obrigatória.");
         }
         Optional<Usuario> usuarioExistente = usuarioRepository.findByLogin(usuario.getLogin());
         if(usuarioExistente.isPresent()) {
