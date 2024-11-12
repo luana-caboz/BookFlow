@@ -1,8 +1,8 @@
 package com.bookflow.bookflow_app.model;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -11,18 +11,18 @@ import jakarta.persistence.Table;
 public class Usuario {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private String cpf;
 
     private String nome;
-    private String login;
+    private String email;
     private String senha;
+    private LocalDate dataNascimento;
 
-    public long getId() {
-        return id;
+    public String getCpf() {
+        return cpf;
     }
-    public void setId(long id) {
-        this.id = id;
+    public void setCpf(String cpf) {
+        this.cpf = cpf;
     }
     public String getNome() {
         return nome;
@@ -30,11 +30,11 @@ public class Usuario {
     public void setNome(String nome) {
         this.nome = nome;
     }
-    public String getLogin() {
-        return login;
+    public String getEmail() {
+        return email;
     }
-    public void setLogin(String login) {
-        this.login = login;
+    public void setEmail(String email) {
+        this.email = email;
     }
     public String getSenha() {
         return senha;
@@ -42,6 +42,11 @@ public class Usuario {
     public void setSenha(String senha) {
         this.senha = senha;
     }
-
+    public LocalDate getDataNascimento() {
+        return dataNascimento;
+    }
+    public void setDataNascimento(LocalDate dataNascimento) {
+        this.dataNascimento = dataNascimento;
+    }
     
 }

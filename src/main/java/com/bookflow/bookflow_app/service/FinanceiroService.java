@@ -21,10 +21,9 @@ public class FinanceiroService {
     private FinanceiroRepository financeiroRepository;
 
     public Financeiro calcularReceita(LocalDate dataInicio, LocalDate dataFim) {
-        List<Venda> vendas = vendaRepository.findAll();
+        List<Venda> vendas = vendaRepository.findByDataVendaBetweenAndStatusNot(dataInicio, dataFim, "CANCELADA");
 
         double receitaTotal = vendas.stream()
-                .filter(venda -> !venda.getDataVenda().isBefore(dataInicio) && !venda.getDataVenda().isAfter(dataFim))
                 .mapToDouble(Venda::getTotal)
                 .sum();
 
@@ -38,5 +37,17 @@ public class FinanceiroService {
 
     public List<Financeiro> listarRegistrosFinanceiros() {
         return financeiroRepository.findAll();
+    }
+
+    public void atualizarReceitaApósCancelamento(Venda vendaCancelada) {
+        // Recalcula a receita após o cancelamento de uma venda
+        Financeiro financeiro = financeiroRepository.findByDataInicioAndDataFim(
+                vendaCancelada.getDataVenda(), vendaCancelada.getDataVenda()); // Pode ser ajustado para mais
+                                                                               // flexibilidade
+
+        if (financeiro != null) {
+            financeiro.setReceitaTotal(financeiro.getReceitaTotal() - vendaCancelada.getTotal());
+            financeiroRepository.save(financeiro);
+        }
     }
 }

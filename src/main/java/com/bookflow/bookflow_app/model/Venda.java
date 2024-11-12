@@ -1,15 +1,16 @@
 package com.bookflow.bookflow_app.model;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -18,24 +19,46 @@ public class Venda {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
-    private LocalDate dataVenda;
+    private String nomeCliente;
+    private String cpfCliente;
+    private LocalDate dataVenda = LocalDate.now();
 
-    @ManyToMany
-    @JoinTable(name = "venda_livro",
-               joinColumns = @JoinColumn(name = "venda_id"),
-               inverseJoinColumns = @JoinColumn(name = "livro_id"))
-    private List<Livro> livros;
+    @Column(name = "status")
+    private String status;
+
+    @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VendaItem> itens = new ArrayList<>();
 
     private double total;
 
-    public Long getId() {
+    public void calcularTotal() {
+        total = itens.stream().mapToDouble(VendaItem::getSubTotal).sum();
+    }
+
+    public int getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(int id) {
         this.id = id;
+    }
+
+    public String getNomeCliente() {
+        return nomeCliente;
+    }
+
+    public void setNomeCliente(String nomeCliente) {
+        this.nomeCliente = nomeCliente;
+    }
+
+    public String getCpfCliente() {
+        return cpfCliente;
+    }
+
+    public void setCpfCliente(String cpfCliente) {
+        this.cpfCliente = cpfCliente;
     }
 
     public LocalDate getDataVenda() {
@@ -46,12 +69,12 @@ public class Venda {
         this.dataVenda = dataVenda;
     }
 
-    public List<Livro> getLivros() {
-        return livros;
+    public List<VendaItem> getItens() {
+        return itens;
     }
 
-    public void setLivros(List<Livro> livros) {
-        this.livros = livros;
+    public void setItens(List<VendaItem> itens) {
+        this.itens = itens;
     }
 
     public double getTotal() {
@@ -61,4 +84,7 @@ public class Venda {
     public void setTotal(double total) {
         this.total = total;
     }
+
+    
 }
+

@@ -37,9 +37,9 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarios);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Usuario> buscarUsuarioPorId(@PathVariable Long id){
-        Optional<Usuario> usuario = usuarioService.buscarUsuarioPorId(id);
+    @GetMapping("/{cpf}")
+    public ResponseEntity<Usuario> buscarUsuarioPorCpf(@PathVariable String cpf){
+        Optional<Usuario> usuario = usuarioService.buscarUsuarioPorCpf(cpf);
         if(usuario.isPresent()) {
             return ResponseEntity.ok(usuario.get());
         } else {
@@ -47,19 +47,19 @@ public class UsuarioController {
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Usuario> atualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuarioAtualizado){
+    @PutMapping("/{cpf}")
+    public ResponseEntity<Usuario> atualizarUsuario(@PathVariable String cpf, @RequestBody Usuario usuarioAtualizado){
         try{
-            Usuario usuario = usuarioService.atualizarUsuario(id, usuarioAtualizado);
+            Usuario usuario = usuarioService.atualizarUsuario(cpf, usuarioAtualizado);
             return ResponseEntity.ok(usuario);
         } catch (IllegalArgumentException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarUsuario(@PathVariable Long id) {
-        usuarioService.deletarUsuario(id);
+    @DeleteMapping("/{cpf}")
+    public ResponseEntity<Void> deletarUsuario(@PathVariable String cpf) {
+        usuarioService.deletarUsuario(cpf);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 

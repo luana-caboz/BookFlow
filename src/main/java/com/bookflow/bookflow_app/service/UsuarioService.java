@@ -27,44 +27,108 @@ public class UsuarioService {
         if(usuario.getNome() == null || usuario.getNome().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"O nome de usuário é obrigatório.");
         }
-        if (usuario.getLogin() == null || usuario.getLogin().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"O login do usuário é obrigatório.");      
+        if (usuario.getEmail() == null || usuario.getEmail().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"O email do usuário é obrigatório.");      
         }
-        if (usuario.getSenha() == null|| usuario.getSenha().isEmpty()) {
+        if (usuario.getSenha() == null || usuario.getSenha().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"A senha é obrigatória.");
         }
-        Optional<Usuario> usuarioExistente = usuarioRepository.findByLogin(usuario.getLogin());
+        if (usuario.getCpf() == null || usuario.getCpf().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"O CPF é obrigatório.");
+        }
+
+        // Validar CPF (Exemplo simples de validação)
+        if (!validarCpf(usuario.getCpf())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF inválido.");
+        }
+
+        // Validar data de nascimento
+        if (usuario.getDataNascimento() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A data de nascimento é obrigatória.");
+        }
+
+        Optional<Usuario> usuarioExistente = usuarioRepository.findByCpf(usuario.getCpf());
         if(usuarioExistente.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Já existe usuário cadastrado com este login.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Já existe usuário cadastrado com este CPF.");
         }
     }
 
+    private boolean validarCpf(String cpf) {
+        // Verifica se o CPF possui exatamente 11 dígitos numéricos
+        if (cpf == null || !cpf.matches("\\d{11}")) {
+            return false;
+        }
+    
+        // Verifica se todos os números do CPF são iguais (ex: 111.111.111-11)
+        if (cpf.equals("00000000000") || cpf.equals("11111111111") || cpf.equals("22222222222")
+                || cpf.equals("33333333333") || cpf.equals("44444444444") || cpf.equals("55555555555")
+                || cpf.equals("66666666666") || cpf.equals("77777777777") || cpf.equals("88888888888")
+                || cpf.equals("99999999999")) {
+            return false;
+        }
+    
+        // Valida os dois últimos dígitos verificadores
+        int soma = 0;
+        int peso = 10;
+    
+        // Calcula o primeiro dígito verificador
+        for (int i = 0; i < 9; i++) {
+            soma += Character.getNumericValue(cpf.charAt(i)) * peso--;
+        }
+        int primeiroDigito = (soma * 10) % 11;
+        if (primeiroDigito == 10) {
+            primeiroDigito = 0;
+        }
+        if (primeiroDigito != Character.getNumericValue(cpf.charAt(9))) {
+            return false;
+        }
+    
+        soma = 0;
+        peso = 11;
+    
+        // Calcula o segundo dígito verificador
+        for (int i = 0; i < 10; i++) {
+            soma += Character.getNumericValue(cpf.charAt(i)) * peso--;
+        }
+        int segundoDigito = (soma * 10) % 11;
+        if (segundoDigito == 10) {
+            segundoDigito = 0;
+        }
+        if (segundoDigito != Character.getNumericValue(cpf.charAt(10))) {
+            return false;
+        }
+    
+        // Se passou por todas as validações, o CPF é válido
+        return true;
+    }
+    
     public List<Usuario> listarTodosOsUsuarios(){
         return usuarioRepository.findAll();
     }
 
-    public Optional<Usuario> buscarUsuarioPorId(long id){
-        return usuarioRepository.findById(id);
+    public Optional<Usuario> buscarUsuarioPorCpf(String cpf){
+        return usuarioRepository.findByCpf(cpf);
     }
 
-    public Usuario atualizarUsuario(Long id, Usuario usuarioAtualizado) {
-        Optional<Usuario> usuarioExistente = buscarUsuarioPorId(id);
+    public Usuario atualizarUsuario(String cpf, Usuario usuarioAtualizado) {
+        Optional<Usuario> usuarioExistente = buscarUsuarioPorCpf(cpf);
 
         if(usuarioExistente.isPresent()){
             Usuario usuario = usuarioExistente.get();
             usuario.setNome(usuarioAtualizado.getNome());
-            usuario.setLogin(usuarioAtualizado.getLogin());
+            usuario.setEmail(usuarioAtualizado.getEmail());
             usuario.setSenha(usuarioAtualizado.getSenha());
+            usuario.setDataNascimento(usuarioAtualizado.getDataNascimento());
             return usuarioRepository.save(usuario);
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Usuário não encontrado!");            
         }
     }
 
-    public void deletarUsuario(Long id) {
-        Optional<Usuario> usuario = buscarUsuarioPorId(id);
+    public void deletarUsuario(String cpf) {
+        Optional<Usuario> usuario = buscarUsuarioPorCpf(cpf);
         if (usuario.isPresent()) {
-            usuarioRepository.deleteById(id);
+            usuarioRepository.deleteById(cpf);
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado!");
         }

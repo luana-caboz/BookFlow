@@ -35,11 +35,13 @@ public class LivroService {
         if (livro.getCategoria() == null || livro.getCategoria().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A categoria do livro é obrigatória.");
         }
-        if (livro.getPreco() == 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O preço do livro é obrigatório.");
+        if (livro.getPreco() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "O preço do livro é obrigatório e deve ser maior que zero.");
         }
         if (livro.getDataPublicacao() == null || livro.getDataPublicacao().isAfter(LocalDate.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A data de publicação é obrigatória e deve ser igual ou anterior a data atual.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "A data de publicação é obrigatória e deve ser igual ou anterior a data atual.");
         }
 
         Optional<Livro> livroExistente = livroRepository.findByTituloContaining(livro.getTitulo());
@@ -57,11 +59,11 @@ public class LivroService {
         if (livro.isPresent()) {
             return livro.get();
         } else {
-            throw new RuntimeException("Livro com o id "+ id +" não encontrado.");
+            throw new RuntimeException("Livro com o id " + id + " não encontrado.");
         }
     }
 
-    public Livro atualizarLivro(int id, Livro livroAtualizado){
+    public Livro atualizarLivro(int id, Livro livroAtualizado) {
         Livro livro = buscarPorId(id);
         livro.setTitulo(livroAtualizado.getTitulo());
         livro.setAutor(livroAtualizado.getAutor());
@@ -71,7 +73,7 @@ public class LivroService {
         return livroRepository.save(livro);
     }
 
-    public void deletarLivro(int id){
+    public void deletarLivro(int id) {
         Livro livro = buscarPorId(id);
         livroRepository.delete(livro);
     }

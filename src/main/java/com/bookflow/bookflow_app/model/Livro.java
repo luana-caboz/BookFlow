@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -21,7 +22,9 @@ public class Livro {
     private String categoria;
     private double preco;
     private LocalDate dataPublicacao;
-    //private int quantidade; colocar quantidade ou criar classe estoque?
+
+    @OneToOne(mappedBy = "livro")
+    private Estoque estoque;
 
     public Livro(){
 
@@ -32,8 +35,8 @@ public class Livro {
         this.titulo = titulo;
         this.autor = autor;
         this.categoria = categoria;
+        this.preco = preco;
         this.dataPublicacao = dataPublicacao;
-       // this.quantidade = quantidade;
     }
 
     public int getId() {
@@ -80,13 +83,19 @@ public class Livro {
         this.dataPublicacao = dataPublicacao;
     }
 
-   // public int getQuantidade() {
-     //   return quantidade;
-   // }
+    
 
-    //public void setQuantidade(int quantidade) {
-  //      this.quantidade = quantidade;
-  //  }
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Estoque getEstoque() {
+        return estoque;
+    }
+
+    public void setEstoque(Estoque estoque) {
+        this.estoque = estoque;
+    }
 
     @Override
     public String toString() {
