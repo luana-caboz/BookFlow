@@ -49,7 +49,7 @@ public class UsuarioService {
 
         Optional<Usuario> usuarioExistente = usuarioRepository.findById(usuario.getId());
         if (usuarioExistente.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Já existe usuário cadastrado com este CPF.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Já existe usuário cadastrado com este id.");
         }
     }
 
@@ -64,37 +64,6 @@ public class UsuarioService {
                 || cpf.equals("33333333333") || cpf.equals("44444444444") || cpf.equals("55555555555")
                 || cpf.equals("66666666666") || cpf.equals("77777777777") || cpf.equals("88888888888")
                 || cpf.equals("99999999999")) {
-            return false;
-        }
-
-        // Valida os dois últimos dígitos verificadores
-        int soma = 0;
-        int peso = 10;
-
-        // Calcula o primeiro dígito verificador
-        for (int i = 0; i < 9; i++) {
-            soma += Character.getNumericValue(cpf.charAt(i)) * peso--;
-        }
-        int primeiroDigito = (soma * 10) % 11;
-        if (primeiroDigito == 10) {
-            primeiroDigito = 0;
-        }
-        if (primeiroDigito != Character.getNumericValue(cpf.charAt(9))) {
-            return false;
-        }
-
-        soma = 0;
-        peso = 11;
-
-        // Calcula o segundo dígito verificador
-        for (int i = 0; i < 10; i++) {
-            soma += Character.getNumericValue(cpf.charAt(i)) * peso--;
-        }
-        int segundoDigito = (soma * 10) % 11;
-        if (segundoDigito == 10) {
-            segundoDigito = 0;
-        }
-        if (segundoDigito != Character.getNumericValue(cpf.charAt(10))) {
             return false;
         }
 
