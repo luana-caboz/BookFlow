@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.bookflow.bookflow_app.model.Usuario;
 
-public interface UsuarioRepository extends JpaRepository<Usuario,String> {
+public interface UsuarioRepository extends JpaRepository<Usuario,Integer> {
 
-    Optional<Usuario> findByCpf(String cpf);
+    Optional<Usuario> findById(int id);
+
+    Optional<Usuario> findByEmail(String email);
 
 }

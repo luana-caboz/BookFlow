@@ -39,8 +39,8 @@ public class UsuarioController {
     }
 
     @GetMapping("/{cpf}")
-    public ResponseEntity<Usuario> buscarUsuarioPorCpf(@PathVariable String cpf){
-        Optional<Usuario> usuario = usuarioService.buscarUsuarioPorCpf(cpf);
+    public ResponseEntity<Usuario> buscarUsuarioPorId(@PathVariable int id){
+        Optional<Usuario> usuario = usuarioService.buscarUsuarioPorId(id);
         if(usuario.isPresent()) {
             return ResponseEntity.ok(usuario.get());
         } else {
@@ -49,9 +49,9 @@ public class UsuarioController {
     }
 
     @PutMapping("/{cpf}")
-    public ResponseEntity<Usuario> atualizarUsuario(@PathVariable String cpf, @RequestBody Usuario usuarioAtualizado){
+    public ResponseEntity<Usuario> atualizarUsuario(@PathVariable int id, @RequestBody Usuario usuarioAtualizado){
         try{
-            Usuario usuario = usuarioService.atualizarUsuario(cpf, usuarioAtualizado);
+            Usuario usuario = usuarioService.atualizarUsuario(id, usuarioAtualizado);
             return ResponseEntity.ok(usuario);
         } catch (IllegalArgumentException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -59,14 +59,14 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{cpf}")
-    public ResponseEntity<Void> deletarUsuario(@PathVariable String cpf) {
-        usuarioService.deletarUsuario(cpf);
+    public ResponseEntity<Void> deletarUsuario(@PathVariable int id) {
+        usuarioService.deletarUsuario(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PostMapping("/login")
     public ResponseEntity<Usuario> login(@RequestBody LoginRequest loginRequest) {
-        Usuario usuario = usuarioService.validarCredenciais(loginRequest.getCpf(), loginRequest.getSenha());
+        Usuario usuario = usuarioService.validarCredenciais(loginRequest.getEmail(), loginRequest.getSenha());
         return ResponseEntity.ok(usuario); 
     }
 }

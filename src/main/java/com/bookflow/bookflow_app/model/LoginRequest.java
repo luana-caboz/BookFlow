@@ -1,16 +1,16 @@
 package com.bookflow.bookflow_app.model;
 
 public class LoginRequest {
-    private String cpf;
+    private String email;
     private String senha;
 
     // Getters e setters
-    public String getCpf() {
-        return cpf;
+    public String getEmail() {
+        return email;
     }
 
-    public void setCpf(String cpf) {
-        this.cpf = cpf;
+    public void setCpf(String email) {
+        this.email = email;
     }
 
     public String getSenha() {

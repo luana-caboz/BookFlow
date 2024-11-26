@@ -47,7 +47,7 @@ public class UsuarioService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A data de nascimento é obrigatória.");
         }
 
-        Optional<Usuario> usuarioExistente = usuarioRepository.findByCpf(usuario.getCpf());
+        Optional<Usuario> usuarioExistente = usuarioRepository.findById(usuario.getId());
         if (usuarioExistente.isPresent()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Já existe usuário cadastrado com este CPF.");
         }
@@ -105,13 +105,13 @@ public class UsuarioService {
         return usuarioRepository.findAll();
     }
 
-    public Optional<Usuario> buscarUsuarioPorCpf(String cpf) {
-        return usuarioRepository.findByCpf(cpf);
+    public Optional<Usuario> buscarUsuarioPorId(int id) {
+        return usuarioRepository.findById(id);
     }
 
     @Transactional
-    public Usuario atualizarUsuario(String cpf, Usuario usuarioAtualizado) {
-        Optional<Usuario> usuarioExistente = buscarUsuarioPorCpf(cpf);
+    public Usuario atualizarUsuario(int id, Usuario usuarioAtualizado) {
+        Optional<Usuario> usuarioExistente = usuarioRepository.findById(id);
 
         if (usuarioExistente.isPresent()) {
             Usuario usuario = usuarioExistente.get();
@@ -126,26 +126,26 @@ public class UsuarioService {
     }
 
     @Transactional
-    public void deletarUsuario(String cpf) {
-        Optional<Usuario> usuario = buscarUsuarioPorCpf(cpf);
+    public void deletarUsuario(int id) {
+        Optional<Usuario> usuario = usuarioRepository.findById(id);
         if (usuario.isPresent()) {
-            usuarioRepository.deleteById(cpf);
+            usuarioRepository.deleteById(id);
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado!");
         }
     }
 
-    public Usuario validarCredenciais(String cpf, String senha) {
-        Optional<Usuario> usuarioExistente = usuarioRepository.findByCpf(cpf);
+    public Usuario validarCredenciais(String email, String senha) {
+        Optional<Usuario> usuarioExistente = usuarioRepository.findByEmail(email);
 
         if (usuarioExistente.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "CPF ou senha inválidos.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email ou senha inválidos.");
         }
 
         Usuario usuario = usuarioExistente.get();
 
         if (!usuario.getSenha().equals(senha)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "CPF ou senha inválidos.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email ou senha inválidos.");
         }
 
         return usuario; 
