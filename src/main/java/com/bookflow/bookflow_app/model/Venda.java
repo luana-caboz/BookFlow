@@ -1,16 +1,14 @@
 package com.bookflow.bookflow_app.model;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -23,18 +21,25 @@ public class Venda {
 
     private String nomeCliente;
     private String cpfCliente;
-    private LocalDate dataVenda = LocalDate.now();
+    private LocalDate dataVenda;
 
     @Column(name = "status")
     private String status;
 
-    @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<VendaItem> itens = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name= "livro_id")
+    private Livro livro;
+
+    private int quantidade; 
 
     private double total;
 
     public void calcularTotal() {
-        total = itens.stream().mapToDouble(VendaItem::getSubTotal).sum();
+        if(livro != null){
+            this.total = livro.getPreco() * quantidade;
+        } else {
+            this.total = 0.0;
+        }
     }
 
     public int getId() {
@@ -61,6 +66,14 @@ public class Venda {
         this.cpfCliente = cpfCliente;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public LocalDate getDataVenda() {
         return dataVenda;
     }
@@ -69,12 +82,20 @@ public class Venda {
         this.dataVenda = dataVenda;
     }
 
-    public List<VendaItem> getItens() {
-        return itens;
+    public Livro getLivro() {
+        return livro;
     }
 
-    public void setItens(List<VendaItem> itens) {
-        this.itens = itens;
+    public void setLivro(Livro livro) {
+        this.livro = livro;
+    }
+
+    public int getQuantidade() {
+        return quantidade;
+    }
+
+    public void setQuantidade(int quantidade) {
+        this.quantidade = quantidade;
     }
 
     public double getTotal() {
@@ -84,6 +105,7 @@ public class Venda {
     public void setTotal(double total) {
         this.total = total;
     }
+
 
     
 }

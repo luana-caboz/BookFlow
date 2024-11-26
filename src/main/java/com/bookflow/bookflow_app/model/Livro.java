@@ -6,7 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -22,25 +21,27 @@ public class Livro {
     private String categoria;
     private double preco;
     private LocalDate dataPublicacao;
-
-    @OneToOne(mappedBy = "livro")
-    private Estoque estoque;
+    private int quantidadeDisponivel;
 
     public Livro(){
 
     }
 
-    public Livro(int id, String titulo, String autor, String categoria, LocalDate dataPublicacao, int quantidade) {
-        this.id = id;
+    public Livro(String titulo, String autor, String categoria, int preco, LocalDate dataPublicacao, int quantidadeDisponivel) {
         this.titulo = titulo;
         this.autor = autor;
         this.categoria = categoria;
         this.preco = preco;
         this.dataPublicacao = dataPublicacao;
+        this.quantidadeDisponivel = quantidadeDisponivel;
     }
 
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getTitulo() {
@@ -83,18 +84,12 @@ public class Livro {
         this.dataPublicacao = dataPublicacao;
     }
 
-    
-
-    public void setId(int id) {
-        this.id = id;
+    public int getQuantidadeDisponivel() {
+        return quantidadeDisponivel;
     }
 
-    public Estoque getEstoque() {
-        return estoque;
-    }
-
-    public void setEstoque(Estoque estoque) {
-        this.estoque = estoque;
+    public void setQuantidadeDisponivel(int quantidadeDisponivel) {
+        this.quantidadeDisponivel = quantidadeDisponivel;
     }
 
     @Override
@@ -102,8 +97,5 @@ public class Livro {
         return "Livros [id=" + id + ", titulo=" + titulo + ", autor=" + autor + ", categoria=" + categoria
                 + ", dataPublicacao=" + dataPublicacao + ", preco " +preco +"]";
     }
-
-    
-    
 
 }

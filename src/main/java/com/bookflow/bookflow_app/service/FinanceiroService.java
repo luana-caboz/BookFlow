@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.bookflow.bookflow_app.model.Financeiro;
 import com.bookflow.bookflow_app.model.Venda;
@@ -20,6 +21,7 @@ public class FinanceiroService {
     @Autowired
     private FinanceiroRepository financeiroRepository;
 
+    @Transactional
     public Financeiro calcularReceita(LocalDate dataInicio, LocalDate dataFim) {
         List<Venda> vendas = vendaRepository.findByDataVendaBetweenAndStatusNot(dataInicio, dataFim, "CANCELADA");
 
@@ -39,6 +41,7 @@ public class FinanceiroService {
         return financeiroRepository.findAll();
     }
 
+    @Transactional
     public void atualizarReceitaApósCancelamento(Venda vendaCancelada) {
         // Recalcula a receita após o cancelamento de uma venda
         Financeiro financeiro = financeiroRepository.findByDataInicioAndDataFim(

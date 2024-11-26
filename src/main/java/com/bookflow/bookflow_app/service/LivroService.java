@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.bookflow.bookflow_app.model.Livro;
@@ -18,14 +19,17 @@ public class LivroService {
     @Autowired
     private LivroRepository livroRepository;
 
+    public LivroService(LivroRepository livroRepository) {
+        this.livroRepository = livroRepository;
+    }
+    
+    @Transactional
     public Livro adicionarLivro(Livro livro) {
-        validarLivro(livro);
+        validarLivro(livro, false);
         return livroRepository.save(livro);
-
     }
 
-    private void validarLivro(Livro livro) {
-        // validar campos obrigatórios
+    private void validarLivro(Livro livro, boolean isUpdate) {
         if (livro.getTitulo() == null || livro.getTitulo().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O titulo do livro é obrigatório.");
         }
@@ -43,10 +47,16 @@ public class LivroService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "A data de publicação é obrigatória e deve ser igual ou anterior a data atual.");
         }
+        if (livro.getQuantidadeDisponivel() < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A quantidade disponível não pode ser negativa.");
+        }
 
-        Optional<Livro> livroExistente = livroRepository.findByTituloContaining(livro.getTitulo());
-        if (livroExistente.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Já existe livro cadastrado com este título.");
+        if (!isUpdate) {
+            Optional<Livro> livroExistente = livroRepository.findByTitulo(livro.getTitulo());
+            if (livroExistente.isPresent()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Já existe livro cadastrado com este título.");
+            }
         }
     }
 
@@ -63,16 +73,32 @@ public class LivroService {
         }
     }
 
+    @Transactional
     public Livro atualizarLivro(int id, Livro livroAtualizado) {
         Livro livro = buscarPorId(id);
+
+        validarLivro(livroAtualizado, true);
+
         livro.setTitulo(livroAtualizado.getTitulo());
         livro.setAutor(livroAtualizado.getAutor());
         livro.setCategoria(livroAtualizado.getCategoria());
         livro.setPreco(livroAtualizado.getPreco());
         livro.setDataPublicacao(livroAtualizado.getDataPublicacao());
+        livro.setQuantidadeDisponivel(livroAtualizado.getQuantidadeDisponivel());
+
         return livroRepository.save(livro);
     }
 
+    @Transactional
+    public void atualizarQuantidade(Livro livro, int novaQuantidade) {
+        if (novaQuantidade < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A quantidade não pode ser negativa.");
+        }
+        livro.setQuantidadeDisponivel(novaQuantidade);
+        livroRepository.save(livro);
+    }
+
+    @Transactional
     public void deletarLivro(int id) {
         Livro livro = buscarPorId(id);
         livroRepository.delete(livro);

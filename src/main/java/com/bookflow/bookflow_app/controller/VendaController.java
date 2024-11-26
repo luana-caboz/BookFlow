@@ -29,9 +29,9 @@ public class VendaController {
     @PostMapping
     public ResponseEntity<String> criarVenda(@RequestBody Venda venda) {
         try {
-            Venda vendaCriada = vendaService.criarVenda(venda);
+            Venda novaVenda = vendaService.criarVenda(venda);
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body("Venda criada com sucesso! ID: " + vendaCriada.getId());
+                    .body("Venda criada com sucesso! ID: " + novaVenda.getId());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
@@ -40,8 +40,7 @@ public class VendaController {
     @GetMapping("/{id}")
     public ResponseEntity<Venda> buscarVendaPorId(@PathVariable int id) {
         try {
-            Venda venda = vendaService.buscarVendaPorId(id)
-                    .orElseThrow(() -> new RuntimeException("Venda não encontrada com ID: " + id));
+            Venda venda = vendaService.buscarVendaPorId(id);
             return ResponseEntity.ok(venda);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -50,14 +49,15 @@ public class VendaController {
 
     @GetMapping
     public ResponseEntity<List<Venda>> listarVendas() {
-        return ResponseEntity.ok(vendaService.listarTodasAsVendas());
+        List<Venda> vendas = vendaService.listarTodasAsVendas();
+        return ResponseEntity.ok(vendas);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<String> atualizarVenda(@PathVariable int id, @RequestBody Venda novaVenda) {
+    public ResponseEntity<String> atualizarVenda(@PathVariable int id, @RequestBody Venda vendaAtualizada) {
         try {
-            Venda vendaAtualizada = vendaService.atualizarVenda(id, novaVenda);
-            return ResponseEntity.ok("Venda atualizada com sucesso! ID: " + vendaAtualizada.getId());
+            Venda vendaAtualizadaResp = vendaService.atualizarVenda(id, vendaAtualizada);
+            return ResponseEntity.ok("Venda atualizada com sucesso! ID: " + vendaAtualizadaResp.getId());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
@@ -67,7 +67,7 @@ public class VendaController {
     public ResponseEntity<String> cancelarVenda(@PathVariable int id) {
         try {
             vendaService.cancelarVenda(id);
-            return ResponseEntity.ok("Venda cancelada com sucesso!");
+            return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }

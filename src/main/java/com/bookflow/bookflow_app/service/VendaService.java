@@ -1,16 +1,19 @@
 package com.bookflow.bookflow_app.service;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.bookflow.bookflow_app.Exceptions.EstoqueInsuficienteException;
+import com.bookflow.bookflow_app.Exceptions.LivroNaoEncontradoException;
 import com.bookflow.bookflow_app.model.Livro;
 import com.bookflow.bookflow_app.model.Venda;
-import com.bookflow.bookflow_app.model.VendaItem;
+import com.bookflow.bookflow_app.repository.LivroRepository;
 import com.bookflow.bookflow_app.repository.VendaRepository;
 
 @Service
@@ -20,81 +23,94 @@ public class VendaService {
     private VendaRepository vendaRepository;
 
     @Autowired
-    private EstoqueService estoqueService;
+    private LivroRepository livroRepository;
 
+    @Transactional
     public Venda criarVenda(Venda venda) {
-        double total = 0.0;
+        // Cria uma nova venda
+        venda.setDataVenda(LocalDate.now());
+        venda.setTotal(0.0);
 
-        for (VendaItem item : venda.getItens()) {
-            Livro livro = item.getLivro();
+        validarVenda(venda);
 
-            if (!estoqueService.verificarDisponibilidade(livro, item.getQuantidade())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Estoque insuficiente para o livro " + livro.getTitulo());
-            }
+        Livro livro = livroRepository.findById(venda.getLivro().getId())
+                .orElseThrow(() -> new LivroNaoEncontradoException("Livro não encontrado"));
 
-            item.calcularSubTotal();
-            total += item.getSubTotal();
-            estoqueService.ajustarEstoque(livro, -item.getQuantidade());
+        if (livro.getQuantidadeDisponivel() < venda.getQuantidade()) {
+            throw new EstoqueInsuficienteException("Estoque insuficiente para o livro: " + livro.getTitulo());
         }
 
-        venda.setTotal(total);
+        livro.setQuantidadeDisponivel(livro.getQuantidadeDisponivel() - venda.getQuantidade());
+        livroRepository.save(livro);
+
+        venda.setTotal(livro.getPreco() * venda.getQuantidade());
+        venda.setDataVenda(LocalDate.now());
+        venda.setStatus("Concluída");
+
         return vendaRepository.save(venda);
+    }
+
+    private void validarVenda(Venda venda) {
+        if (venda.getNomeCliente() == null || venda.getNomeCliente().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O nome do cliente é obrigatório.");
+        }
+        if (venda.getCpfCliente() == null || venda.getCpfCliente().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O CPF do cliente é obrigatório.");
+        }
+        if (venda.getLivro() == null || venda.getQuantidade() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Informações do livro e quantidade são obrigatórias.");
+        }
     }
 
     public List<Venda> listarTodasAsVendas() {
         return vendaRepository.findAll();
     }
-    
-    public Optional<Venda> buscarVendaPorId(int id) {
-        return vendaRepository.findById(id);
+
+    public Venda buscarVendaPorId(int id) {
+        return vendaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Venda não encontrada."));
+
     }
 
     public Venda atualizarVenda(int vendaId, Venda novaVenda) {
-        Venda vendaExistente = vendaRepository.findById(vendaId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Venda não encontrada"));
+        Venda vendaExistente = buscarVendaPorId(vendaId);
 
-        for (VendaItem item : vendaExistente.getItens()) {
-            Livro livro = item.getLivro();
-            estoqueService.ajustarEstoque(livro, item.getQuantidade());
+        Livro livroAntigo = vendaExistente.getLivro();
+        livroAntigo.setQuantidadeDisponivel(livroAntigo.getQuantidadeDisponivel() + vendaExistente.getQuantidade());
+        livroRepository.save(livroAntigo);
+
+        // Validar e atualizar o novo livro e quantidade
+        Livro livroNovo = livroRepository.findById(novaVenda.getLivro().getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Livro não encontrado"));
+
+        if (livroNovo.getQuantidadeDisponivel() < novaVenda.getQuantidade()) {
+            throw new EstoqueInsuficienteException(
+                    "Estoque insuficiente para o livro: " + livroNovo.getTitulo());
         }
 
-        double total = 0.0;
+        livroNovo.setQuantidadeDisponivel(livroNovo.getQuantidadeDisponivel() - novaVenda.getQuantidade());
+        livroRepository.save(livroNovo);
 
-        for (VendaItem item : novaVenda.getItens()) {
-            Livro livro = item.getLivro();
-
-            if (!estoqueService.verificarDisponibilidade(livro, item.getQuantidade())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
-                    "Estoque insuficiente para o livro " + livro.getTitulo());
-            }
-
-            item.calcularSubTotal();
-            total += item.getSubTotal();
-            estoqueService.ajustarEstoque(livro, -item.getQuantidade());
-        }
-
-        vendaExistente.setItens(novaVenda.getItens());
-        vendaExistente.setTotal(total);
+        // Atualizar os dados da venda
+        vendaExistente.setLivro(livroNovo);
+        vendaExistente.setQuantidade(novaVenda.getQuantidade());
         vendaExistente.setNomeCliente(novaVenda.getNomeCliente());
         vendaExistente.setCpfCliente(novaVenda.getCpfCliente());
+        vendaExistente.calcularTotal();
 
         return vendaRepository.save(vendaExistente);
     }
 
-
+    @Transactional
     public void cancelarVenda(int vendaId) {
-        Venda venda = vendaRepository.findById(vendaId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Venda não encontrada"));
+        Venda venda = buscarVendaPorId(vendaId);
 
-        // Reestabelece o estoque para cada item da venda cancelada
-        for (VendaItem item : venda.getItens()) {
-            Livro livro = item.getLivro();
-            estoqueService.ajustarEstoque(livro, item.getQuantidade());
-        }
+        Livro livro = venda.getLivro();
+        livro.setQuantidadeDisponivel(livro.getQuantidadeDisponivel() + venda.getQuantidade());
+        livroRepository.save(livro);
 
-        vendaRepository.deleteById(vendaId); 
+        vendaRepository.deleteById(vendaId);
     }
 
-
 }
-

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bookflow.bookflow_app.model.LoginRequest;
 import com.bookflow.bookflow_app.model.Usuario;
 import com.bookflow.bookflow_app.service.UsuarioService;
 
@@ -63,4 +64,9 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<Usuario> login(@RequestBody LoginRequest loginRequest) {
+        Usuario usuario = usuarioService.validarCredenciais(loginRequest.getCpf(), loginRequest.getSenha());
+        return ResponseEntity.ok(usuario); 
+    }
 }
