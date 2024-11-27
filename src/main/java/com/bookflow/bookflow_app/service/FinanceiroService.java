@@ -21,36 +21,49 @@ public class FinanceiroService {
     @Autowired
     private FinanceiroRepository financeiroRepository;
 
-    @Transactional
-    public Financeiro calcularReceita(LocalDate dataInicio, LocalDate dataFim) {
-        List<Venda> vendas = vendaRepository.findByDataVendaBetweenAndStatusNot(dataInicio, dataFim, "CANCELADA");
-
-        double receitaTotal = vendas.stream()
-                .mapToDouble(Venda::getTotal)
-                .sum();
-
-        Financeiro financeiro = new Financeiro();
-        financeiro.setDataInicio(dataInicio);
-        financeiro.setDataFim(dataFim);
-        financeiro.setReceitaTotal(receitaTotal);
-
-        return financeiroRepository.save(financeiro);
+    public Financeiro criarDespesa(Financeiro despesa) {
+        return financeiroRepository.save(despesa);
     }
 
     public List<Financeiro> listarRegistrosFinanceiros() {
         return financeiroRepository.findAll();
     }
 
-    @Transactional
-    public void atualizarReceitaApósCancelamento(Venda vendaCancelada) {
-        // Recalcula a receita após o cancelamento de uma venda
-        Financeiro financeiro = financeiroRepository.findByDataInicioAndDataFim(
-                vendaCancelada.getDataVenda(), vendaCancelada.getDataVenda()); // Pode ser ajustado para mais
-                                                                               // flexibilidade
+    public List<Financeiro> listarDespesasFiltradas(LocalDate dataInicio, LocalDate dataFim) {
+        return financeiroRepository.findByDataBetween(dataInicio, dataFim);
+    }
 
-        if (financeiro != null) {
-            financeiro.setReceitaTotal(financeiro.getReceitaTotal() - vendaCancelada.getTotal());
-            financeiroRepository.save(financeiro);
-        }
+    public Financeiro buscarDespesaPorId(int id) {
+        return financeiroRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Despesa não encontrada"));
+    }
+
+    public Financeiro atualizarDespesa(int id, Financeiro despesaAtualizada) {
+        return financeiroRepository.findById(id)
+                .map(despesa -> {
+                    despesa.setDescricao(despesaAtualizada.getDescricao());
+                    despesa.setFormaPagamento(despesaAtualizada.getFormaPagamento());
+                    despesa.setStatus(despesaAtualizada.getStatus());
+                    despesa.setValor(despesaAtualizada.getValor());
+                    despesa.setData(despesaAtualizada.getData());
+                    return financeiroRepository.save(despesa);
+                })
+                .orElseThrow(() -> new RuntimeException("Despesa não encontrada"));
+    }
+
+    @Transactional
+    public double calcularReceita(LocalDate dataInicio, LocalDate dataFim) {
+
+        List<Venda> vendas = vendaRepository.findByDataVendaBetweenAndStatusNot(dataInicio, dataFim, "CANCELADA");
+        double totalVendas = vendas.stream().mapToDouble(Venda::getTotal).sum();
+
+        List<Financeiro> despesas = listarDespesasFiltradas(dataInicio, dataFim);
+        double totalDespesas = despesas.stream().mapToDouble(Financeiro::getValor).sum();
+
+        return totalVendas - totalDespesas;
+    }
+
+    public void excluirDespesa(int id) {
+        financeiroRepository.deleteById(id);
     }
 }

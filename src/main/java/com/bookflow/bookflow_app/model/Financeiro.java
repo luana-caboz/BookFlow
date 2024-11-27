@@ -16,10 +16,8 @@ public class Financeiro {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private LocalDate dataInicio;
-    private LocalDate dataFim;
-    private double receitaTotal;
-    private String categoria;
+    private LocalDate data;
+    private String descricao;
     private String formaPagamento;
     private String status;
     private double valor;
@@ -30,30 +28,11 @@ public class Financeiro {
     public void setId(int id) {
         this.id = id;
     }
-    public LocalDate getDataInicio() {
-        return dataInicio;
+    public String getDescricao() {
+        return descricao;
     }
-    public void setDataInicio(LocalDate dataInicio) {
-        this.dataInicio = dataInicio;
-    }
-    public LocalDate getDataFim() {
-        return dataFim;
-    }
-    public void setDataFim(LocalDate dataFim) {
-        this.dataFim = dataFim;
-    }
-    public double getReceitaTotal() {
-        return receitaTotal;
-    }
-    public void setReceitaTotal(double receitaTotal) {
-        this.receitaTotal = receitaTotal;
-    }
-
-    public String getCategoria() {
-        return categoria;
-    }
-    public void setCategoria(String categoria) {
-        this.categoria = categoria;
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
     }
     public String getFormaPagamento() {
         return formaPagamento;
@@ -73,4 +52,11 @@ public class Financeiro {
     public void setValor(double valor) {
         this.valor = valor;
     }
+    public LocalDate getData() {
+        return data;
+    }
+    public void setData(LocalDate data) {
+        this.data = data;
+    }
+    
 }
